@@ -5,10 +5,12 @@ import (
 	"errors"
 	"goquery-test/src/model"
 	"goquery-test/src/querier"
+	"goquery-test/src/rabbitmq"
 	"goquery-test/src/utils"
 	"time"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/streadway/amqp"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -18,17 +20,17 @@ var (
 
 type MangaCoordinator struct {
 	// s3w *s3.Client
-	db *sqlx.DB
-	// rmq *rabbitmq.RabbitMQClient
-	// q   amqp.Queue
+	db  *sqlx.DB
+	rmq *rabbitmq.RabbitMQClient
+	q   amqp.Queue
 }
 
-func NewMangaCoordinator(db *sqlx.DB) MangaCoordinator {
+func NewMangaCoordinator(db *sqlx.DB, rmq *rabbitmq.RabbitMQClient, q amqp.Queue) MangaCoordinator {
 	return MangaCoordinator{
 		// s3w: s3cliet,
-		db: db,
-		// rmq: rmq,
-		// q:   q,
+		db:  db,
+		rmq: rmq,
+		q:   q,
 	}
 }
 
@@ -43,14 +45,16 @@ func (s *MangaCoordinator) Sync(ctx context.Context) error {
 			utils.FailOnError("coordinator", err)
 		}
 
-		IterateViaMangaPages(mgs, s.db)
+		for _, m := range mgs {
+			sc := querier.ScapeMangaPage(m)
+			InsertManga(sc, s, m.Id, m.Append)
+		}
 
 		select {
 		case <-ticker.C:
 		case <-ctx.Done():
 			return ctx.Err()
 		}
-
 	}
 }
 
@@ -58,6 +62,24 @@ func (s MangaCoordinator) Run(ctx context.Context) error {
 	g, c := errgroup.WithContext(ctx)
 	g.Go(func() error { return s.Sync(c) })
 	return g.Wait()
+}
+
+func InsertManga(mc []model.Manga, s *MangaCoordinator, id int64, appendURL bool) {
+	for _, mc := range mc {
+		mc.Append = appendURL
+		mc.Page_Id = id
+		_, ex, _ := model.GetManga(s.db, mc.Title)
+		if !ex {
+			err := mc.InsertManga(s.db)
+			if err != nil {
+				utils.FailOnError("coordinator", err)
+			}
+			err = s.rmq.PublishMessage(s.q, utils.StructToJson(mc))
+			if err != nil {
+				utils.FailOnError("coordinator", err)
+			}
+		}
+	}
 }
 
 // func (s *MangaCoordinator) GetS3Object(uuid string) bool {
@@ -96,23 +118,3 @@ func (s MangaCoordinator) Run(ctx context.Context) error {
 // 	return err
 
 // }
-
-func IterateViaMangaPages(mgs []model.MangaPageSQL, db *sqlx.DB) {
-	for _, m := range mgs {
-		sc := querier.ScapeMangaPage(m)
-		IterateViaManga(sc, db)
-	}
-}
-
-func IterateViaManga(mc []model.Manga, db *sqlx.DB) {
-	for _, mc := range mc {
-		_, ex := model.GetManga(db, mc.Title)
-		if !ex {
-			_ = mc.InsertManga(db)
-		} else {
-			utils.LogWithInfo("coordinator", "record exists in manga table")
-		}
-
-	}
-
-}
