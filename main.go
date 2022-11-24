@@ -4,6 +4,7 @@ import (
 	"context"
 	"goquery-test/src/coordinator"
 	"goquery-test/src/db"
+	"goquery-test/src/rabbitmq"
 	"goquery-test/src/runner"
 	"goquery-test/src/utils"
 	"net/http"
@@ -22,6 +23,7 @@ var (
 
 func main() {
 	Initialize()
+
 }
 
 func Initialize() error {
@@ -31,14 +33,21 @@ func Initialize() error {
 
 	sqlxDB = db.OpenSQLx()
 
-	// sy = syncer.NewSyncer(sqlxDB, s3Client, rmq, q)
+	rabbitCh, err := rabbitmq.ConnectToRabbit()
+	utils.FailOnError("rabbitmq", err)
+	defer rabbitCh.Close()
+
+	rmq := rabbitmq.CreateRabbitMQClient(rabbitCh, "manga-workers")
+
+	q, err := rmq.CreateRabbitMQueue()
+	utils.FailOnError("rabbitmq", err)
 
 	router, err := NewServer(ctx)
 	if err != nil {
 		utils.LogWithInfo("server", "internal error")
 	}
 
-	coordinator := coordinator.NewMangaCoordinator(sqlxDB)
+	coordinator := coordinator.NewMangaCoordinator(sqlxDB, rmq, q)
 
 	runners := []runner.Runner{
 		runner.NewSignal(os.Interrupt, syscall.SIGTERM),

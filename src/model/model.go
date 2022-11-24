@@ -29,7 +29,7 @@ type MangaPageSQL struct {
 type Manga struct {
 	Title   string `json:"title"`
 	Url     string `json:"url"`
-	Page_Id int    `json:"page_id"`
+	Page_Id int64  `json:"page_id"`
 	Append  bool   `json:"append"`
 }
 
@@ -90,14 +90,13 @@ func (m Manga) InsertManga(db *sqlx.DB) error {
 	return err
 }
 
-func GetManga(db *sqlx.DB, p string) (MangaSQL, bool) {
+func GetManga(db *sqlx.DB, p string) (MangaSQL, bool, error) {
 	mx.Lock()
 	var res MangaSQL
 	err := db.Get(&res, fmt.Sprintf("SELECT * FROM manga WHERE title = \"%v\"", p))
 	mx.Unlock()
 	if err != nil {
-		utils.LogWithInfo("db", "record does not exists in the database")
-		return MangaSQL{}, false
+		return MangaSQL{}, false, err
 	}
-	return res, true
+	return res, true, err
 }
