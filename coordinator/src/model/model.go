@@ -4,7 +4,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"goquery-test/src/utils"
+	"goquery-coordinator/src/utils"
 	"sync"
 
 	"github.com/jmoiron/sqlx"
@@ -82,7 +82,7 @@ func InsertMangaPage(db *sqlx.DB, m interface{}) error {
 
 func (m Manga) InsertManga(db *sqlx.DB) error {
 	mx.Lock()
-	_, err := db.NamedExec(`INSERT INTO manga (title, url, page_id, append)  VALUES (:title, :url, :page_id, :append);`, m)
+	_, err := db.NamedExec(`INSERT INTO manga (title, url, page_id, append)  VALUES (:title, :url, (select id from db.mangapages WHERE id = :page_id), :append);`, m)
 	if err != nil {
 		utils.FailOnError("coordinator", ErrDBInternalError)
 	}

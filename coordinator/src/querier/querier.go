@@ -1,7 +1,7 @@
 package querier
 
 import (
-	"goquery-test/src/model"
+	"goquery-coordinator/src/model"
 	"log"
 	"net/http"
 

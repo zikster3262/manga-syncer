@@ -2,8 +2,8 @@ package routes
 
 import (
 	"errors"
-	"goquery-test/src/model"
-	"goquery-test/src/utils"
+	"goquery-coordinator/src/model"
+	"goquery-coordinator/src/utils"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

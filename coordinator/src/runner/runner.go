@@ -2,7 +2,7 @@ package runner
 
 import (
 	"context"
-	"goquery-test/src/utils"
+	"goquery-coordinator/src/utils"
 
 	"golang.org/x/sync/errgroup"
 )

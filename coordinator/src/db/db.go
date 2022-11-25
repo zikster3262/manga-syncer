@@ -2,7 +2,7 @@ package db
 
 import (
 	"fmt"
-	"goquery-test/src/utils"
+	"goquery-coordinator/src/utils"
 	"os"
 	"sync"
 	"time"

@@ -2,7 +2,7 @@ package api
 
 import (
 	"context"
-	"goquery-test/src/routes"
+	"goquery-coordinator/src/routes"
 
 	"github.com/gin-gonic/gin"
 	"github.com/jmoiron/sqlx"
