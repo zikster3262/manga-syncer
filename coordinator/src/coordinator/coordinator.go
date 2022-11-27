@@ -5,9 +5,11 @@ import (
 	"errors"
 	"goquery-coordinator/src/model"
 	"goquery-coordinator/src/querier"
-	"goquery-coordinator/src/rabbitmq"
+
 	"goquery-coordinator/src/utils"
 	"time"
+
+	"github.com/zikster3262/shared-lib/rabbitmq"
 
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/sync/errgroup"
@@ -15,7 +17,7 @@ import (
 
 var (
 	ErrNotCantRetriveData = errors.New("can't retrive data from database")
-	qName                 = "manga-workers"
+	rabbitQueueName                = "manga-workers"
 )
 
 type MangaCoordinator struct {
@@ -45,7 +47,7 @@ func (s *MangaCoordinator) Sync(ctx context.Context) error {
 
 		for _, m := range mgs {
 			sc := querier.ScapeMangaPage(m)
-			InsertManga(sc, s, m.Id, m.Append)
+			InsertManga(ctx, sc, s, m.Id, m.Append)
 		}
 
 		select {
@@ -62,7 +64,7 @@ func (s MangaCoordinator) Run(ctx context.Context) error {
 	return g.Wait()
 }
 
-func InsertManga(mc []model.Manga, s *MangaCoordinator, id int64, appendURL bool) {
+func InsertManga(ctx context.Context, mc []model.Manga, s *MangaCoordinator, id int64, appendURL bool) {
 	for _, mc := range mc {
 		mc.Append = appendURL
 		mc.Page_Id = id
@@ -73,7 +75,7 @@ func InsertManga(mc []model.Manga, s *MangaCoordinator, id int64, appendURL bool
 			if err != nil {
 				utils.FailOnError("coordinator", err)
 			}
-			err = s.rmq.PublishMessage(qName, utils.StructToJson(mc))
+			err = s.rmq.PublishMessage(rabbitQueueName, ctx, utils.StructToJson(mc))
 			if err != nil {
 				utils.FailOnError("coordinator", err)
 			}

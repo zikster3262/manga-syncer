@@ -6,7 +6,8 @@ require (
 	github.com/PuerkitoBio/goquery v1.8.0
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/jmoiron/sqlx v1.3.5
-	github.com/streadway/amqp v1.0.0
+	github.com/rabbitmq/amqp091-go v1.5.0
+	github.com/zikster3262/shared-lib v1.0.4
 	golang.org/x/sync v0.1.0
 	gopkg.in/tylerb/graceful.v1 v1.2.15
 )

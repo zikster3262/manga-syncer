@@ -8,7 +8,7 @@ require (
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/sirupsen/logrus v1.9.0
-	github.com/streadway/amqp v1.0.0
+	github.com/zikster3262/shared-lib v1.0.4
 	golang.org/x/sync v0.1.0
 	gopkg.in/tylerb/graceful.v1 v1.2.15
 )
@@ -16,6 +16,7 @@ require (
 require (
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
+	github.com/rabbitmq/amqp091-go v1.5.0 // indirect
 )
 
 require (

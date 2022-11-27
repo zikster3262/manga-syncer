@@ -4,13 +4,14 @@ import (
 	"context"
 	"goquery-coordinator/src/coordinator"
 	"goquery-coordinator/src/db"
-	"goquery-coordinator/src/rabbitmq"
 	"goquery-coordinator/src/runner"
 	"goquery-coordinator/src/utils"
 	"net/http"
 	"os"
 	"syscall"
 	"time"
+
+	"github.com/zikster3262/shared-lib/rabbitmq"
 
 	"goquery-coordinator/src/api"
 
@@ -37,7 +38,9 @@ func Initialize() error {
 	utils.FailOnError("rabbitmq", err)
 	defer rabbitCh.Close()
 
+
 	rmq := rabbitmq.CreateRabbitMQClient(rabbitCh)
+
 
 	router, err := NewServer(ctx)
 	if err != nil {

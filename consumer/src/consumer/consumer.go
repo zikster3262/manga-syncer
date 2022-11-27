@@ -6,12 +6,13 @@ import (
 	"errors"
 	"goquery-client/src/model"
 	"goquery-client/src/querier"
-	"goquery-client/src/rabbitmq"
 	"goquery-client/src/utils"
 	"time"
 
+	"github.com/zikster3262/shared-lib/rabbitmq"
+
 	"github.com/jmoiron/sqlx"
-	"github.com/streadway/amqp"
+	amqp "github.com/rabbitmq/amqp091-go"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -19,21 +20,20 @@ var (
 	ErrNotCantRetriveData = errors.New("can't retrive data from database")
 	mpChan                = make(chan []model.Manga)
 	rq                    = amqp.Queue{Name: "workers"}
+	rabbitQueueName       = "manga-workers"
 )
 
 type MangaConsumer struct {
 	// s3w *s3.Client
 	db  *sqlx.DB
 	rmq *rabbitmq.RabbitMQClient
-	q   amqp.Queue
 }
 
-func NewMangaConsumer(db *sqlx.DB, rmq *rabbitmq.RabbitMQClient, q amqp.Queue) MangaConsumer {
+func NewMangaConsumer(db *sqlx.DB, rmq *rabbitmq.RabbitMQClient) MangaConsumer {
 	return MangaConsumer{
 		// s3w: s3cliet,
 		db:  db,
 		rmq: rmq,
-		q:   q,
 	}
 }
 
@@ -43,7 +43,7 @@ func (s *MangaConsumer) Sync(ctx context.Context) error {
 
 	for {
 		utils.LogWithInfo("consumer", "consumer is running...")
-		msgs, err := s.rmq.Consume(s.q)
+		msgs, err := s.rmq.Consume(rabbitQueueName)
 		utils.FailOnError("rabbitmq", err)
 
 		go parseMsg(msgs, s.db)
@@ -51,7 +51,7 @@ func (s *MangaConsumer) Sync(ctx context.Context) error {
 
 			for _, r := range <-mpChan {
 				r.InsertToMangaPage(s.db)
-				err = s.rmq.PublishMessage(rq, utils.StructToJson(r))
+				err = s.rmq.PublishMessage(rabbitQueueName, ctx, utils.StructToJson(r))
 				if err != nil {
 					utils.FailOnError("coordinator", err)
 				}
