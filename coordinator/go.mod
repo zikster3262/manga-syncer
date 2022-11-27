@@ -1,4 +1,4 @@
-module goquery-test
+module goquery-coordinator
 
 go 1.19
 

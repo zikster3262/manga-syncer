@@ -2,17 +2,17 @@ package main
 
 import (
 	"context"
-	"goquery-test/src/coordinator"
-	"goquery-test/src/db"
-	"goquery-test/src/rabbitmq"
-	"goquery-test/src/runner"
-	"goquery-test/src/utils"
+	"goquery-coordinator/src/coordinator"
+	"goquery-coordinator/src/db"
+	"goquery-coordinator/src/rabbitmq"
+	"goquery-coordinator/src/runner"
+	"goquery-coordinator/src/utils"
 	"net/http"
 	"os"
 	"syscall"
 	"time"
 
-	"goquery-test/src/api"
+	"goquery-coordinator/src/api"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -37,17 +37,14 @@ func Initialize() error {
 	utils.FailOnError("rabbitmq", err)
 	defer rabbitCh.Close()
 
-	rmq := rabbitmq.CreateRabbitMQClient(rabbitCh, "manga-workers")
-
-	q, err := rmq.CreateRabbitMQueue()
-	utils.FailOnError("rabbitmq", err)
+	rmq := rabbitmq.CreateRabbitMQClient(rabbitCh)
 
 	router, err := NewServer(ctx)
 	if err != nil {
 		utils.LogWithInfo("server", "internal error")
 	}
 
-	coordinator := coordinator.NewMangaCoordinator(sqlxDB, rmq, q)
+	coordinator := coordinator.NewMangaCoordinator(sqlxDB, rmq)
 
 	runners := []runner.Runner{
 		runner.NewSignal(os.Interrupt, syscall.SIGTERM),

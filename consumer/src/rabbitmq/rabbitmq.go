@@ -1,7 +1,7 @@
 package rabbitmq
 
 import (
-	"goquery-test/src/utils"
+	"goquery-client/src/utils"
 	"os"
 
 	"github.com/streadway/amqp"
@@ -57,4 +57,19 @@ func (rmq *RabbitMQClient) PublishMessage(q amqp.Queue, body []byte) error {
 		})
 	utils.FailOnError("rabbitmq", err)
 	return err
+}
+
+func (rmq *RabbitMQClient) Consume(q amqp.Queue) (<-chan amqp.Delivery, error) {
+
+	msgs, err := rmq.ch.Consume(
+		q.Name, // queue
+		"",     // consumer
+		true,   // auto-ack
+		false,  // exclusive
+		false,  // no-local
+		false,  // no-wait
+		nil,    // args
+	)
+
+	return msgs, err
 }
