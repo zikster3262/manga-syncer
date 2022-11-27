@@ -44,7 +44,9 @@ func createMangaPage(c *gin.Context) {
 	} else {
 
 		err = model.InsertMangaPage(db, m)
+
 		if err != nil {
+
 			utils.FailOnError("handlers", err)
 			c.JSON(http.StatusInternalServerError, gin.H{"Status": "failed"})
 		}

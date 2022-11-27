@@ -8,7 +8,6 @@ import (
 	"goquery-client/src/querier"
 	"goquery-client/src/rabbitmq"
 	"goquery-client/src/utils"
-	"sync"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -42,27 +41,22 @@ func (s *MangaConsumer) Sync(ctx context.Context) error {
 	ticker := time.NewTicker(time.Second * 5)
 	defer ticker.Stop()
 
-	var wg sync.WaitGroup
-
 	for {
 		utils.LogWithInfo("consumer", "consumer is running...")
 		msgs, err := s.rmq.Consume(s.q)
 		utils.FailOnError("rabbitmq", err)
 
-		wg.Add(1)
-
 		go parseMsg(msgs, s.db)
 		go func() {
-			defer wg.Done()
+
 			for _, r := range <-mpChan {
+				r.InsertToMangaPage(s.db)
 				err = s.rmq.PublishMessage(rq, utils.StructToJson(r))
 				if err != nil {
 					utils.FailOnError("coordinator", err)
 				}
 			}
 		}()
-
-		wg.Wait()
 
 		select {
 		case <-ticker.C:
