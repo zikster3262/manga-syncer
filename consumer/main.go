@@ -31,11 +31,10 @@ func Initialize() error {
 
 	rabbitCh, err := rabbitmq.ConnectToRabbit()
 	utils.FailOnError("rabbitmq", err)
-	defer rabbitCh.Close()
 
 	rmq := rabbitmq.CreateRabbitMQClient(rabbitCh)
 
-	coordinator := consumer.NewMangaConsumer(sqlxDB, rmq)
+	coordinator := consumer.NewConsumer(sqlxDB, rmq)
 
 	runners := []runner.Runner{
 		runner.NewSignal(os.Interrupt, syscall.SIGTERM),

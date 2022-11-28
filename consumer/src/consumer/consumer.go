@@ -24,22 +24,22 @@ var (
 	rabbitQueueName       = "pages"
 )
 
-type MangaConsumer struct {
+type Consumer struct {
 	// s3w *s3.Client
 	db  *sqlx.DB
 	rmq *rabbitmq.RabbitMQClient
 }
 
-func NewMangaConsumer(db *sqlx.DB, rmq *rabbitmq.RabbitMQClient) MangaConsumer {
-	return MangaConsumer{
+func NewConsumer(db *sqlx.DB, rmq *rabbitmq.RabbitMQClient) Consumer {
+	return Consumer{
 		// s3w: s3cliet,
 		db:  db,
 		rmq: rmq,
 	}
 }
 
-func (s *MangaConsumer) Sync(ctx context.Context) error {
-	ticker := time.NewTicker(time.Second * 5)
+func (s *Consumer) Sync(ctx context.Context) error {
+	ticker := time.NewTicker(time.Second * 1)
 	defer ticker.Stop()
 
 	for {
@@ -68,8 +68,8 @@ func (s *MangaConsumer) Sync(ctx context.Context) error {
 
 }
 
-func (s *MangaConsumer) Consume(ctx context.Context) error {
-	ticker := time.NewTicker(time.Second * 5)
+func (s *Consumer) Consume(ctx context.Context) error {
+	ticker := time.NewTicker(time.Second * 1)
 	defer ticker.Stop()
 
 	for {
@@ -82,8 +82,13 @@ func (s *MangaConsumer) Consume(ctx context.Context) error {
 			for m := range msgs {
 				p := page.PageSQL{}
 				json.Unmarshal([]byte(string(m.Body)), &p)
-				ch := chapter.CreateNewChapter(p.Id, p.Title, p.Url, p.Append)
-				ch.InsertChapter(s.db)
+
+				res, _, _ := chapter.GetChapter(s.db, p.Url)
+				if p.Url != res.Url {
+					ch := chapter.CreateNewChapter(p.Id, p.Title, p.Url, p.Append)
+					ch.InsertChapter(s.db)
+				}
+
 			}
 
 		}()
@@ -98,7 +103,7 @@ func (s *MangaConsumer) Consume(ctx context.Context) error {
 
 }
 
-func (s MangaConsumer) Run(ctx context.Context) error {
+func (s Consumer) Run(ctx context.Context) error {
 	g, c := errgroup.WithContext(ctx)
 	g.Go(func() error { return s.Sync(c) })
 	g.Go(func() error { return s.Consume(c) })

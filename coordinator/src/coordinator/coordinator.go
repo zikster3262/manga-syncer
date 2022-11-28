@@ -3,6 +3,7 @@ package coordinator
 import (
 	"context"
 	"errors"
+	"fmt"
 	"goquery-coordinator/src/querier"
 
 	"goquery-coordinator/src/utils"
@@ -76,10 +77,11 @@ func InsertManga(ctx context.Context, mc []page.Page, s *MangaCoordinator, id in
 			if err != nil {
 				utils.FailOnError("coordinator", err)
 			}
-			err = s.rmq.PublishMessage(rabbitQueueName, utils.StructToJson(mc))
-			if err != nil {
-				utils.FailOnError("coordinator", err)
-			}
+		}
+		fmt.Println(mc)
+		err := s.rmq.PublishMessage(rabbitQueueName, utils.StructToJson(mc))
+		if err != nil {
+			utils.FailOnError("coordinator", err)
 		}
 	}
 }
