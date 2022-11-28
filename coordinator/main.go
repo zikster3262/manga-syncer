@@ -11,11 +11,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/zikster3262/shared-lib/rabbitmq"
-
 	"goquery-coordinator/src/api"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/zikster3262/shared-lib/rabbitmq"
 )
 
 var (
@@ -38,9 +37,9 @@ func Initialize() error {
 	utils.FailOnError("rabbitmq", err)
 	defer rabbitCh.Close()
 
-
 	rmq := rabbitmq.CreateRabbitMQClient(rabbitCh)
 
+	time.Sleep(time.Second * 12)
 
 	router, err := NewServer(ctx)
 	if err != nil {

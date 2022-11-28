@@ -3,13 +3,14 @@ package coordinator
 import (
 	"context"
 	"errors"
-	"goquery-coordinator/src/model"
 	"goquery-coordinator/src/querier"
 
 	"goquery-coordinator/src/utils"
 	"time"
 
+	"github.com/zikster3262/shared-lib/page"
 	"github.com/zikster3262/shared-lib/rabbitmq"
+	"github.com/zikster3262/shared-lib/source"
 
 	"github.com/jmoiron/sqlx"
 	"golang.org/x/sync/errgroup"
@@ -17,7 +18,7 @@ import (
 
 var (
 	ErrNotCantRetriveData = errors.New("can't retrive data from database")
-	rabbitQueueName                = "manga-workers"
+	rabbitQueueName       = "sources"
 )
 
 type MangaCoordinator struct {
@@ -40,7 +41,7 @@ func (s *MangaCoordinator) Sync(ctx context.Context) error {
 
 	for {
 		utils.LogWithInfo("coordinator", "coordinator is running... ")
-		mgs, err := model.GetAllMangaPages(s.db)
+		mgs, err := source.GetAllSources(s.db)
 		if err != nil {
 			utils.FailOnError("coordinator", err)
 		}
@@ -64,58 +65,21 @@ func (s MangaCoordinator) Run(ctx context.Context) error {
 	return g.Wait()
 }
 
-func InsertManga(ctx context.Context, mc []model.Manga, s *MangaCoordinator, id int64, appendURL bool) {
+func InsertManga(ctx context.Context, mc []page.Page, s *MangaCoordinator, id int64, appendURL bool) {
 	for _, mc := range mc {
 		mc.Append = appendURL
 		mc.Page_Id = id
 
-		_, ex, _ := model.GetManga(s.db, mc.Title)
+		_, ex, _ := page.GetPage(s.db, mc.Title)
 		if !ex {
-			err := mc.InsertManga(s.db)
+			err := page.InsertPage(s.db, mc)
 			if err != nil {
 				utils.FailOnError("coordinator", err)
 			}
-			err = s.rmq.PublishMessage(rabbitQueueName, ctx, utils.StructToJson(mc))
+			err = s.rmq.PublishMessage(rabbitQueueName, utils.StructToJson(mc))
 			if err != nil {
 				utils.FailOnError("coordinator", err)
 			}
 		}
 	}
 }
-
-// func (s *MangaCoordinator) GetS3Object(uuid string) bool {
-
-// 	listObjsResponse, err := s.s3w.ListObjectsV2(context.TODO(), &s3.ListObjectsV2Input{
-// 		Bucket: aws.String("requests"),
-// 	})
-
-// 	if err != nil {
-// 		utils.FailOnError("coordinator", err)
-// 	}
-
-// 	for _, object := range listObjsResponse.Contents {
-// 		if *object.Key == uuid {
-// 			return true
-// 		}
-// 	}
-
-// 	return false
-
-// }
-
-// func (s *MangaCoordinator) PutS3Object(m model.DbRequest) error {
-// 	bt := utils.StructToJson(m)
-// 	body := bytes.NewReader(bt)
-
-// 	_, err := s.s3w.PutObject(context.TODO(), &s3.PutObjectInput{
-// 		Bucket: aws.String("requests"),
-// 		Key:    aws.String(m.Uuid),
-// 		Body:   body,
-// 	})
-
-// 	if err != nil {
-// 		utils.FailOnError(err, "Couldn't upload file: "+err.Error())
-// 	}
-// 	return err
-
-// }
