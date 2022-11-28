@@ -8,7 +8,7 @@ import (
 	"github.com/zikster3262/shared-lib/page"
 )
 
-func ScapeMangaPage(url, pattern, title string, id int64, appendUrl bool) (m []page.Page) {
+func ScapeMangaPage(url, homeURL, pattern, title string, id, sid int64, appendUrl bool) (m []page.PageSQL) {
 	// Request the HTML page.
 	res, err := http.Get(url)
 	if err != nil {
@@ -30,14 +30,16 @@ func ScapeMangaPage(url, pattern, title string, id int64, appendUrl bool) (m []p
 
 		href, _ := s.Attr("href")
 
-		mn := page.Page{
+		mn := page.PageSQL{
+			Id:        id,
 			Url:       href,
 			Title:     title,
-			Source_Id: id,
+			Source_Id: int(sid),
+			Append:    appendUrl,
 		}
 
 		if appendUrl {
-			mn.Url = url + href
+			mn.Url = homeURL + href
 		}
 
 		m = append(m, mn)
