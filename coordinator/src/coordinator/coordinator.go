@@ -78,7 +78,7 @@ func InsertManga(ctx context.Context, mc []page.Page, s *MangaCoordinator, id in
 				utils.FailOnError("coordinator", err)
 			}
 		}
-		fmt.Println(mc)
+	
 		err := s.rmq.PublishMessage(rabbitQueueName, utils.StructToJson(mc))
 		if err != nil {
 			utils.FailOnError("coordinator", err)
