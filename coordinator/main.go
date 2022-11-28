@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"goquery-coordinator/src/coordinator"
-	"goquery-coordinator/src/db"
 	"goquery-coordinator/src/runner"
 	"goquery-coordinator/src/utils"
 	"net/http"
@@ -14,6 +13,7 @@ import (
 	"goquery-coordinator/src/api"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/zikster3262/shared-lib/db"
 	"github.com/zikster3262/shared-lib/rabbitmq"
 )
 
@@ -38,8 +38,6 @@ func Initialize() error {
 	defer rabbitCh.Close()
 
 	rmq := rabbitmq.CreateRabbitMQClient(rabbitCh)
-
-	time.Sleep(time.Second * 12)
 
 	router, err := NewServer(ctx)
 	if err != nil {

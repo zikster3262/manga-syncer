@@ -4,12 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"goquery-client/src/model"
 	"goquery-client/src/querier"
 	"goquery-client/src/utils"
 	"time"
 
+	"github.com/zikster3262/shared-lib/page"
 	"github.com/zikster3262/shared-lib/rabbitmq"
+	"github.com/zikster3262/shared-lib/source"
 
 	"github.com/jmoiron/sqlx"
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -18,9 +19,8 @@ import (
 
 var (
 	ErrNotCantRetriveData = errors.New("can't retrive data from database")
-	mpChan                = make(chan []model.Manga)
-	rq                    = amqp.Queue{Name: "workers"}
-	rabbitQueueName       = "manga-workers"
+	mpChan                = make(chan []page.Page)
+	rabbitQueueName       = "pages"
 )
 
 type MangaConsumer struct {
@@ -50,8 +50,7 @@ func (s *MangaConsumer) Sync(ctx context.Context) error {
 		go func() {
 
 			for _, r := range <-mpChan {
-				r.InsertToMangaPage(s.db)
-				err = s.rmq.PublishMessage(rabbitQueueName, ctx, utils.StructToJson(r))
+				err = s.rmq.PublishMessage("chapters", utils.StructToJson(r))
 				if err != nil {
 					utils.FailOnError("coordinator", err)
 				}
@@ -81,10 +80,10 @@ func parseMsg(msgs <-chan amqp.Delivery, db *sqlx.DB) {
 	go func(msgs <-chan amqp.Delivery) {
 		for d := range msgs {
 
-			m := model.Manga{}
+			m := page.Page{}
 			json.Unmarshal([]byte(string(d.Body)), &m)
-			mp := model.GetMangaPageID(db, m.Page_Id)
-			ms, _, _ := model.GetManga(db, m.Title)
+			mp := source.GetSourceID(db, m.Source_Id)
+			ms, _, _ := page.GetPage(db, m.Title)
 			pm := querier.ScapeMangaPage(m.Url, mp.Page_Pattern, m.Title, ms.Id, m.Append)
 			mpChan <- pm
 

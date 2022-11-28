@@ -18,7 +18,7 @@ import (
 
 var (
 	ErrNotCantRetriveData = errors.New("can't retrive data from database")
-	rabbitQueueName       = "sources"
+	rabbitQueueName       = "pages"
 )
 
 type MangaCoordinator struct {
@@ -68,11 +68,11 @@ func (s MangaCoordinator) Run(ctx context.Context) error {
 func InsertManga(ctx context.Context, mc []page.Page, s *MangaCoordinator, id int64, appendURL bool) {
 	for _, mc := range mc {
 		mc.Append = appendURL
-		mc.Page_Id = id
+		mc.Source_Id = id
 
 		_, ex, _ := page.GetPage(s.db, mc.Title)
 		if !ex {
-			err := page.InsertPage(s.db, mc)
+			err := mc.InsertPage(s.db)
 			if err != nil {
 				utils.FailOnError("coordinator", err)
 			}

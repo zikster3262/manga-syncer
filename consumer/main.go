@@ -3,13 +3,12 @@ package main
 import (
 	"context"
 	"goquery-client/src/consumer"
-	"goquery-client/src/db"
 	"goquery-client/src/runner"
 	"goquery-client/src/utils"
 	"os"
 	"syscall"
-	"time"
 
+	"github.com/zikster3262/shared-lib/db"
 	"github.com/zikster3262/shared-lib/rabbitmq"
 
 	"github.com/jmoiron/sqlx"
@@ -27,8 +26,6 @@ func Initialize() error {
 	ctx := context.Background()
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
-
-	time.Sleep(time.Second * 12)
 
 	sqlxDB = db.OpenSQLx()
 
