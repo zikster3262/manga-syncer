@@ -1,14 +1,16 @@
 package querier
 
 import (
-	"goquery-coordinator/src/model"
 	"log"
 	"net/http"
+
+	"github.com/zikster3262/shared-lib/page"
+	"github.com/zikster3262/shared-lib/source"
 
 	"github.com/PuerkitoBio/goquery"
 )
 
-func ScapeMangaPage(mp model.MangaPageSQL) (m []model.Manga) {
+func ScapeMangaPage(mp source.SourceSQL) (m []page.Page) {
 	// Request the HTML page.
 	res, err := http.Get(mp.Manga_URL)
 	if err != nil {
@@ -31,7 +33,7 @@ func ScapeMangaPage(mp model.MangaPageSQL) (m []model.Manga) {
 		v, _ := s.Attr("href")
 		t, _ := s.Attr("title")
 
-		mn := model.Manga{
+		mn := page.Page{
 			Url:   v,
 			Title: t,
 		}

@@ -2,9 +2,10 @@ package routes
 
 import (
 	"errors"
-	"goquery-coordinator/src/model"
 	"goquery-coordinator/src/utils"
 	"net/http"
+
+	"github.com/zikster3262/shared-lib/source"
 
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
@@ -28,14 +29,14 @@ func createMangaPage(c *gin.Context) {
 		log.Error(ErrDBDoesNotExists)
 	}
 
-	var m model.MangaPage
+	var m source.Source
 	err := bindJson(c, &m)
 	if err != nil {
 		utils.FailOnError("handlers", err)
 	}
 
 	// call GetManga func and return SQLManga Struct
-	res := model.GetMangaPage(db, m.Manga_URL)
+	res := source.GetSourcePage(db, m.Manga_URL)
 
 	if res.Manga_URL == m.Manga_URL {
 
@@ -43,7 +44,7 @@ func createMangaPage(c *gin.Context) {
 
 	} else {
 
-		err = model.InsertMangaPage(db, m)
+		err = source.InsertSource(db, m)
 
 		if err != nil {
 

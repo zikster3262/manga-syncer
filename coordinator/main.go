@@ -3,8 +3,6 @@ package main
 import (
 	"context"
 	"goquery-coordinator/src/coordinator"
-	"goquery-coordinator/src/db"
-	"goquery-coordinator/src/rabbitmq"
 	"goquery-coordinator/src/runner"
 	"goquery-coordinator/src/utils"
 	"net/http"
@@ -15,6 +13,8 @@ import (
 	"goquery-coordinator/src/api"
 
 	"github.com/jmoiron/sqlx"
+	"github.com/zikster3262/shared-lib/db"
+	"github.com/zikster3262/shared-lib/rabbitmq"
 )
 
 var (

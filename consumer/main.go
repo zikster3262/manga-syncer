@@ -3,13 +3,13 @@ package main
 import (
 	"context"
 	"goquery-client/src/consumer"
-	"goquery-client/src/db"
-	"goquery-client/src/rabbitmq"
 	"goquery-client/src/runner"
 	"goquery-client/src/utils"
 	"os"
 	"syscall"
-	"time"
+
+	"github.com/zikster3262/shared-lib/db"
+	"github.com/zikster3262/shared-lib/rabbitmq"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -27,20 +27,15 @@ func Initialize() error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
-	time.Sleep(time.Second * 12)
-
 	sqlxDB = db.OpenSQLx()
 
 	rabbitCh, err := rabbitmq.ConnectToRabbit()
 	utils.FailOnError("rabbitmq", err)
 	defer rabbitCh.Close()
 
-	rmq := rabbitmq.CreateRabbitMQClient(rabbitCh, "manga-workers")
+	rmq := rabbitmq.CreateRabbitMQClient(rabbitCh)
 
-	q, err := rmq.CreateRabbitMQueue()
-	utils.FailOnError("rabbitmq", err)
-
-	coordinator := consumer.NewMangaConsumer(sqlxDB, rmq, q)
+	coordinator := consumer.NewMangaConsumer(sqlxDB, rmq)
 
 	runners := []runner.Runner{
 		runner.NewSignal(os.Interrupt, syscall.SIGTERM),
