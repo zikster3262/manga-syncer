@@ -4,13 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"goquery-client/src/querier"
 	"goquery-client/src/utils"
 	"time"
 
+	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/zikster3262/shared-lib/chapter"
 	"github.com/zikster3262/shared-lib/page"
 	"github.com/zikster3262/shared-lib/rabbitmq"
+	"github.com/zikster3262/shared-lib/scrape"
 	"github.com/zikster3262/shared-lib/source"
 
 	"github.com/jmoiron/sqlx"
@@ -25,14 +26,14 @@ var (
 )
 
 type Consumer struct {
-	// s3w *s3.Client
+	s3w *s3.Client
 	db  *sqlx.DB
 	rmq *rabbitmq.RabbitMQClient
 }
 
-func NewConsumer(db *sqlx.DB, rmq *rabbitmq.RabbitMQClient) Consumer {
+func NewConsumer(db *sqlx.DB, rmq *rabbitmq.RabbitMQClient, c *s3.Client) Consumer {
 	return Consumer{
-		// s3w: s3cliet,
+		s3w: c,
 		db:  db,
 		rmq: rmq,
 	}
@@ -69,7 +70,7 @@ func (s *Consumer) Sync(ctx context.Context) error {
 }
 
 func (s *Consumer) Consume(ctx context.Context) error {
-	ticker := time.NewTicker(time.Second * 1)
+	ticker := time.NewTicker(time.Second * 2)
 	defer ticker.Stop()
 
 	for {
@@ -121,7 +122,7 @@ func parseMsg(msgs <-chan amqp.Delivery, db *sqlx.DB) {
 			json.Unmarshal([]byte(string(d.Body)), &m)
 			mp := source.GetSourceID(db, int64(m.Source_Id))
 			ms, _, _ := page.GetPage(db, m.Title)
-			pm := querier.ScapeMangaPage(m.Url, mp.Manga_URL, mp.Page_Pattern, m.Title, ms.Id, mp.Id, m.Append)
+			pm := scrape.ScapePage(m, ms.Id, mp.Id)
 			mpChan <- pm
 
 		}
