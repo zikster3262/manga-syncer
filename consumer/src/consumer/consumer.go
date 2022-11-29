@@ -40,7 +40,7 @@ func NewConsumer(db *sqlx.DB, rmq *rabbitmq.RabbitMQClient, c *s3.Client) Consum
 }
 
 func (s *Consumer) Sync(ctx context.Context) error {
-	ticker := time.NewTicker(time.Second * 1)
+	ticker := time.NewTicker(time.Second * 5)
 	defer ticker.Stop()
 
 	for {
@@ -70,7 +70,7 @@ func (s *Consumer) Sync(ctx context.Context) error {
 }
 
 func (s *Consumer) Consume(ctx context.Context) error {
-	ticker := time.NewTicker(time.Second * 2)
+	ticker := time.NewTicker(time.Second * 5)
 	defer ticker.Stop()
 
 	for {

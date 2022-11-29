@@ -6,7 +6,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.29.4
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/rabbitmq/amqp091-go v1.5.0
-	github.com/zikster3262/shared-lib v1.0.37
+	github.com/zikster3262/shared-lib v1.0.41
 	golang.org/x/sync v0.1.0
 	gopkg.in/tylerb/graceful.v1 v1.2.15
 )
