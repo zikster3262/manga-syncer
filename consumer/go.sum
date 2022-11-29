@@ -62,8 +62,14 @@ github.com/rs/zerolog v1.28.0/go.mod h1:NILgTygv/Uej1ra5XxGf82ZFSLk58MFGAUS2o6us
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.7.0/go.mod h1:6Fq8oRcR53rry900zMqJjRRixrwX3KX962/h/Wwjteg=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
-github.com/zikster3262/shared-lib v1.0.31 h1:+JY5BA6wdWlej5YgbU1TcMzjl0FMe07ALaMkhKJptqY=
-github.com/zikster3262/shared-lib v1.0.31/go.mod h1:8rsrd9OdP0Vj54xHStFR7DGGt+QcVC+bjRVeWtaSx44=
+github.com/zikster3262/shared-lib v1.0.34 h1:KaV0s37mMrUTDhhtGloH33t5VTiMPCUBnLPrHKzmsVs=
+github.com/zikster3262/shared-lib v1.0.34/go.mod h1:8rsrd9OdP0Vj54xHStFR7DGGt+QcVC+bjRVeWtaSx44=
+github.com/zikster3262/shared-lib v1.0.35 h1:3N/Nn5lDlxFDA7xsm5ucaRhuSzIXFRW4RMO18b4Oa8k=
+github.com/zikster3262/shared-lib v1.0.35/go.mod h1:8rsrd9OdP0Vj54xHStFR7DGGt+QcVC+bjRVeWtaSx44=
+github.com/zikster3262/shared-lib v1.0.36 h1:E5HmJd7ONUmNpqhLTDYdQCfQDQUKBqun+JCFizMOWHw=
+github.com/zikster3262/shared-lib v1.0.36/go.mod h1:8rsrd9OdP0Vj54xHStFR7DGGt+QcVC+bjRVeWtaSx44=
+github.com/zikster3262/shared-lib v1.0.37 h1:2qL7wmoM8IANcOwAW2PxwpJ1D40u1Ij6DQjpbId/wB0=
+github.com/zikster3262/shared-lib v1.0.37/go.mod h1:8rsrd9OdP0Vj54xHStFR7DGGt+QcVC+bjRVeWtaSx44=
 go.uber.org/goleak v1.1.12 h1:gZAh5/EyT/HQwlpkCy6wTpqfH9H8Lz8zbm3dZh+OyzA=
 go.uber.org/goleak v1.1.12/go.mod h1:cwTWslyiVhfpKIDGSZEM2HlOvcqm+tG4zioyIeLoqMQ=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=

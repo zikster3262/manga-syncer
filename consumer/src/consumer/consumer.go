@@ -86,8 +86,25 @@ func (s *Consumer) Consume(ctx context.Context) error {
 
 				res, _, _ := chapter.GetChapter(s.db, p.Url)
 				if p.Url != res.Url {
-					ch := chapter.CreateNewChapter(p.Id, p.Title, p.Url, p.Append)
+
+					ch := chapter.Chapter{
+						Page_id:         p.Id,
+						Title:           p.Title,
+						Url:             p.Url,
+						Chapter_Pattern: p.Chapter_Pattern,
+						Append:          p.Append,
+					}
 					ch.InsertChapter(s.db)
+
+					imgs := scrape.ScapeChapter(ch)
+
+					for _, i := range imgs {
+						err = s.rmq.PublishMessage("images", utils.StructToJson(i))
+						if err != nil {
+							utils.FailOnError("coordinator", err)
+						}
+
+					}
 				}
 
 			}
