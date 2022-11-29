@@ -82,10 +82,8 @@ github.com/ugorji/go v1.2.7/go.mod h1:nF9osbDWLy6bDVv/Rtoh6QgnvNDpmCalQV5urGCCS6
 github.com/ugorji/go/codec v1.2.7 h1:YPXUKf7fYbp/y8xloBqZOw2qaVggbfwMlI8WM3wZUJ0=
 github.com/ugorji/go/codec v1.2.7/go.mod h1:WGN1fab3R1fzQlVQTkfxVtIBhWDRqOviHU95kRgeqEY=
 github.com/yuin/goldmark v1.3.5/go.mod h1:mwnBkeHKe2W/ZEtQ+71ViKU8L12m81fl3OWwC1Zlc8k=
-github.com/zikster3262/shared-lib v1.0.16 h1:kIeXfLeg+8b/rU43QEMQdAPI89D3iPGI2ayWpzyADOo=
-github.com/zikster3262/shared-lib v1.0.16/go.mod h1:KM3viXWYZ7IMtJso3DWxqdQO/I+yQFVrSV0YaJMsS18=
-github.com/zikster3262/shared-lib v1.0.24 h1:ZIRK5lqxTyWB8rjH5nmaBMNOZkvggubJ5UtbubNLZpY=
-github.com/zikster3262/shared-lib v1.0.24/go.mod h1:KM3viXWYZ7IMtJso3DWxqdQO/I+yQFVrSV0YaJMsS18=
+github.com/zikster3262/shared-lib v1.0.31 h1:+JY5BA6wdWlej5YgbU1TcMzjl0FMe07ALaMkhKJptqY=
+github.com/zikster3262/shared-lib v1.0.31/go.mod h1:8rsrd9OdP0Vj54xHStFR7DGGt+QcVC+bjRVeWtaSx44=
 go.uber.org/goleak v1.1.12 h1:gZAh5/EyT/HQwlpkCy6wTpqfH9H8Lz8zbm3dZh+OyzA=
 go.uber.org/goleak v1.1.12/go.mod h1:cwTWslyiVhfpKIDGSZEM2HlOvcqm+tG4zioyIeLoqMQ=
 golang.org/x/crypto v0.0.0-20190308221718-c2843e01d9a2/go.mod h1:djNgcEr1/C05ACkg1iLfiJU5Ep61QUkGW8qpdssI0+w=
