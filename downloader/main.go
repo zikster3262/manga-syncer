@@ -2,14 +2,14 @@ package main
 
 import (
 	"context"
-	"goquery-client/src/consumer"
+	"goquery-client/src/downloader"
 	"goquery-client/src/runner"
 	"os"
 	"syscall"
-
-	"github.com/zikster3262/shared-lib/rabbitmq"
+	"time"
 
 	"github.com/zikster3262/shared-lib/db"
+	"github.com/zikster3262/shared-lib/rabbitmq"
 	"github.com/zikster3262/shared-lib/storage"
 
 	"github.com/jmoiron/sqlx"
@@ -28,15 +28,17 @@ func Initialize() error {
 	ctx, cancel := context.WithCancel(ctx)
 	defer cancel()
 
+	time.Sleep(time.Second * 10)
 	sqlxDB = db.OpenSQLx()
+
 	rbConn := rabbitmq.CreateRabbitMQClient()
 	client := storage.CreateNewClient()
 
-	consumer := consumer.NewConsumer(sqlxDB, rbConn, client)
+	downloader := downloader.NewDownloader(sqlxDB, rbConn, client)
 
 	runners := []runner.Runner{
 		runner.NewSignal(os.Interrupt, syscall.SIGTERM),
-		consumer,
+		downloader,
 	}
 
 	err := runner.RunParallel(ctx, runners...)
@@ -46,4 +48,5 @@ func Initialize() error {
 		return err
 	}
 	return nil
+
 }

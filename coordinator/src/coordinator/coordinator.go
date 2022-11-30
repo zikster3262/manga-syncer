@@ -7,6 +7,7 @@ import (
 	"goquery-coordinator/src/utils"
 	"time"
 
+	"github.com/rabbitmq/amqp091-go"
 	"github.com/zikster3262/shared-lib/page"
 	"github.com/zikster3262/shared-lib/rabbitmq"
 	"github.com/zikster3262/shared-lib/scrape"
@@ -22,14 +23,12 @@ var (
 )
 
 type MangaCoordinator struct {
-	// s3w *s3.Client
 	db  *sqlx.DB
 	rmq *rabbitmq.RabbitMQClient
 }
 
 func NewMangaCoordinator(db *sqlx.DB, rmq *rabbitmq.RabbitMQClient) MangaCoordinator {
 	return MangaCoordinator{
-		// s3w: s3cliet,
 		db:  db,
 		rmq: rmq,
 	}
@@ -38,6 +37,9 @@ func NewMangaCoordinator(db *sqlx.DB, rmq *rabbitmq.RabbitMQClient) MangaCoordin
 func (s *MangaCoordinator) Sync(ctx context.Context) error {
 	ticker := time.NewTicker(time.Second * 5)
 	defer ticker.Stop()
+
+	pub := s.rmq.CreateChannel()
+	defer pub.Close()
 
 	for {
 		utils.LogWithInfo("coordinator", "coordinator is running... ")
@@ -48,7 +50,7 @@ func (s *MangaCoordinator) Sync(ctx context.Context) error {
 
 		for _, m := range mgs {
 			sc := scrape.ScapeSource(m)
-			InsertManga(sc, s)
+			InsertManga(sc, s, pub)
 		}
 
 		select {
@@ -65,7 +67,7 @@ func (s MangaCoordinator) Run(ctx context.Context) error {
 	return g.Wait()
 }
 
-func InsertManga(mc []page.Page, s *MangaCoordinator) {
+func InsertManga(mc []page.Page, s *MangaCoordinator, channel *amqp091.Channel) {
 	for _, mc := range mc {
 		_, ex, _ := page.GetPage(s.db, mc.Title)
 		if !ex {
@@ -75,7 +77,7 @@ func InsertManga(mc []page.Page, s *MangaCoordinator) {
 			}
 		}
 
-		err := s.rmq.PublishMessage(rabbitQueueName, utils.StructToJson(mc))
+		err := rabbitmq.PublishMessage(channel, rabbitQueueName, utils.StructToJson(mc))
 		if err != nil {
 			utils.FailOnError("coordinator", err)
 		}

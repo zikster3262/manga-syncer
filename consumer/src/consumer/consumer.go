@@ -4,13 +4,15 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"goquery-client/src/utils"
 	"time"
+
+	"github.com/zikster3262/shared-lib/utils"
+
+	"github.com/zikster3262/shared-lib/rabbitmq"
 
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/zikster3262/shared-lib/chapter"
 	"github.com/zikster3262/shared-lib/page"
-	"github.com/zikster3262/shared-lib/rabbitmq"
 	"github.com/zikster3262/shared-lib/scrape"
 	"github.com/zikster3262/shared-lib/source"
 
@@ -40,27 +42,33 @@ func NewConsumer(db *sqlx.DB, rmq *rabbitmq.RabbitMQClient, c *s3.Client) Consum
 }
 
 func (s *Consumer) Sync(ctx context.Context) error {
-	ticker := time.NewTicker(time.Second * 5)
+	cons := s.rmq.CreateChannel()
+	pub := s.rmq.CreateChannel()
+	defer cons.Close()
+	defer pub.Close()
+
+	ticker := time.NewTicker(time.Second * 2)
 	defer ticker.Stop()
 
 	for {
-		utils.LogWithInfo("consumer", "consumer is running...")
-		msgs, err := s.rmq.Consume(rabbitQueueName)
-		utils.FailOnError("rabbitmq", err)
+		utils.LogWithInfo("consumer-sync", "consumer is running...")
+		msgs, err := rabbitmq.Consume(cons, rabbitQueueName)
+		utils.FailOnCmpError("rabbitmq", "consume-sync", err)
 
 		go parseMsg(msgs, s.db)
 		go func() {
 
 			for _, r := range <-mpChan {
-				err = s.rmq.PublishMessage("chapters", utils.StructToJson(r))
+				err = rabbitmq.PublishMessage(pub, "chapters", utils.StructToJson(r))
 				if err != nil {
-					utils.FailOnError("coordinator", err)
+					utils.FailOnCmpError("rabbitmq", "publish-sync", err)
 				}
 			}
 		}()
 
 		select {
 		case <-ticker.C:
+			defer s.rmq.Close()
 		case <-ctx.Done():
 			return ctx.Err()
 		}
@@ -70,13 +78,18 @@ func (s *Consumer) Sync(ctx context.Context) error {
 }
 
 func (s *Consumer) Consume(ctx context.Context) error {
-	ticker := time.NewTicker(time.Second * 5)
+	sub := s.rmq.CreateChannel()
+	pub := s.rmq.CreateChannel()
+	defer pub.Close()
+	defer sub.Close()
+
+	ticker := time.NewTicker(time.Second * 2)
 	defer ticker.Stop()
 
 	for {
-		utils.LogWithInfo("consumer", "consumer is running...")
-		msgs, err := s.rmq.Consume("chapters")
-		utils.FailOnError("rabbitmq", err)
+		utils.LogWithInfo("consumer-consume", "consumer is running...")
+		msgs, err := rabbitmq.Consume(sub, "chapters")
+		utils.FailOnCmpError("rabbitmq", "consume-consume", err)
 
 		go func() {
 
@@ -99,9 +112,9 @@ func (s *Consumer) Consume(ctx context.Context) error {
 					imgs := scrape.ScapeChapter(ch)
 
 					for _, i := range imgs {
-						err = s.rmq.PublishMessage("images", utils.StructToJson(i))
+						err = rabbitmq.PublishMessage(pub, "images", utils.StructToJson(i))
 						if err != nil {
-							utils.FailOnError("coordinator", err)
+							utils.FailOnCmpError("rabbitmq", "publish-consume", err)
 						}
 
 					}

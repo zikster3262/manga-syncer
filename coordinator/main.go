@@ -13,7 +13,6 @@ import (
 	"goquery-coordinator/src/api"
 
 	"github.com/jmoiron/sqlx"
-	amqp "github.com/rabbitmq/amqp091-go"
 	"github.com/zikster3262/shared-lib/db"
 	"github.com/zikster3262/shared-lib/rabbitmq"
 )
@@ -34,32 +33,13 @@ func Initialize() error {
 
 	sqlxDB = db.OpenSQLx()
 
-	rabbitCh, err := rabbitmq.ConnectToRabbit()
-	utils.FailOnError("rabbitmq", err)
-
-	confirms := make(chan amqp.Confirmation)
-	rabbitCh.NotifyPublish(confirms)
-	go func() {
-		for confirm := range confirms {
-			if !confirm.Ack {
-				utils.LogWithInfo("rabbitmq", "Failed")
-			}
-		}
-	}()
-
-	err = rabbitCh.Confirm(false)
-	utils.FailOnError("rabbitmq", err)
-
-	defer rabbitCh.Close()
-
-	rmq := rabbitmq.CreateRabbitMQClient(rabbitCh)
-
+	rbConn := rabbitmq.CreateRabbitMQClient()
 	router, err := NewServer(ctx)
 	if err != nil {
 		utils.LogWithInfo("server", "internal error")
 	}
 
-	coordinator := coordinator.NewMangaCoordinator(sqlxDB, rmq)
+	coordinator := coordinator.NewMangaCoordinator(sqlxDB, rbConn)
 
 	runners := []runner.Runner{
 		runner.NewSignal(os.Interrupt, syscall.SIGTERM),
