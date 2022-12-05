@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/zikster3262/shared-lib/utils"
@@ -47,15 +48,17 @@ func (s *Consumer) Sync(ctx context.Context) error {
 	defer cons.Close()
 	defer pub.Close()
 
-	ticker := time.NewTicker(time.Second * 2)
+	ticker := time.NewTicker(time.Second * 5)
 	defer ticker.Stop()
 
 	for {
 		utils.LogWithInfo("consumer-sync", "consumer is running...")
 		msgs, err := rabbitmq.Consume(cons, rabbitQueueName)
 		utils.FailOnCmpError("rabbitmq", "consume-sync", err)
+		for i := 0; i < 5; i++ {
+			go parseMsg(msgs, s.db)
+		}
 
-		go parseMsg(msgs, s.db)
 		go func() {
 
 			for _, r := range <-mpChan {
@@ -83,7 +86,7 @@ func (s *Consumer) Consume(ctx context.Context) error {
 	defer pub.Close()
 	defer sub.Close()
 
-	ticker := time.NewTicker(time.Second * 2)
+	ticker := time.NewTicker(time.Second * 5)
 	defer ticker.Stop()
 
 	for {
@@ -91,38 +94,44 @@ func (s *Consumer) Consume(ctx context.Context) error {
 		msgs, err := rabbitmq.Consume(sub, "chapters")
 		utils.FailOnCmpError("rabbitmq", "consume-consume", err)
 
-		go func() {
+		for i := 0; i < 5; i++ {
 
-			for m := range msgs {
-				p := page.PageSQL{}
-				json.Unmarshal([]byte(string(m.Body)), &p)
+			go func() {
 
-				res, _, _ := chapter.GetChapter(s.db, p.Url)
-				if p.Url != res.Url {
+				for m := range msgs {
+					p := page.PageSQL{}
+					json.Unmarshal([]byte(string(m.Body)), &p)
 
-					ch := chapter.Chapter{
-						Page_id:         p.Id,
-						Title:           p.Title,
-						Url:             p.Url,
-						Chapter_Pattern: p.Chapter_Pattern,
-						Append:          p.Append,
-					}
-					ch.InsertChapter(s.db)
+					res, _, _ := chapter.GetChapter(s.db, p.Url)
+					if p.Url != res.Url {
 
-					imgs := scrape.ScapeChapter(ch)
-
-					for _, i := range imgs {
-						err = rabbitmq.PublishMessage(pub, "images", utils.StructToJson(i))
-						if err != nil {
-							utils.FailOnCmpError("rabbitmq", "publish-consume", err)
+						ch := chapter.Chapter{
+							Page_id:         p.Id,
+							Title:           p.Title,
+							Url:             p.Url,
+							Chapter_Pattern: p.Chapter_Pattern,
+							Append:          p.Append,
 						}
+						ch.InsertChapter(s.db)
 
+						imgs := scrape.ScapeChapter(ch)
+
+						for _, i := range imgs {
+							c := fmt.Sprintf("%v, %v, %v", i.Chapter, i.Filename, i.Url)
+							fmt.Println(c)
+							err = rabbitmq.PublishMessage(pub, "images", utils.StructToJson(i))
+							if err != nil {
+								utils.FailOnCmpError("rabbitmq", "publish-consume", err)
+							}
+
+						}
 					}
+
 				}
 
-			}
+			}()
 
-		}()
+		}
 
 		select {
 		case <-ticker.C:

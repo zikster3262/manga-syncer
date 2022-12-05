@@ -5,11 +5,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"goquery-client/src/utils"
+	"goquery-client/src/s3wd"
+
 	"time"
 
+	"github.com/zikster3262/shared-lib/utils"
+
 	"github.com/aws/aws-sdk-go-v2/service/s3"
-	"github.com/zikster3262/shared-lib/chapter"
+	"github.com/zikster3262/shared-lib/img"
 	"github.com/zikster3262/shared-lib/rabbitmq"
 
 	"github.com/jmoiron/sqlx"
@@ -37,10 +40,14 @@ func NewDownloader(db *sqlx.DB, rmq *rabbitmq.RabbitMQClient, c *s3.Client) Down
 }
 
 func (s *Downloader) Sync(ctx context.Context) error {
-	ticker := time.NewTicker(time.Second * 2)
+	ticker := time.NewTicker(time.Second * 15)
 	defer ticker.Stop()
 
 	pub := s.rmq.CreateChannel()
+	err := pub.Qos(1, 0, false)
+	if err != nil {
+		utils.FailOnCmpError("downloader", "channel queorum", err)
+	}
 	defer pub.Close()
 
 	for {
@@ -48,16 +55,7 @@ func (s *Downloader) Sync(ctx context.Context) error {
 		msgs, err := rabbitmq.Consume(pub, "images")
 		utils.FailOnError("rabbitmq", err)
 
-		go parseMsg(msgs)
-		// go func() {
-
-		// 	for _, r := range <-mpChan {
-		// 		err = s.rmq.PublishMessage("chapters", utils.StructToJson(r))
-		// 		if err != nil {
-		// 			utils.FailOnError("coordinator", err)
-		// 		}
-		// 	}
-		// }()
+		go parseMsg(s.s3w, msgs)
 
 		select {
 		case <-ticker.C:
@@ -75,19 +73,25 @@ func (s Downloader) Run(ctx context.Context) error {
 	return g.Wait()
 }
 
-func parseMsg(msgs <-chan amqp.Delivery) {
+func parseMsg(s3w *s3.Client, msgs <-chan amqp.Delivery) {
 
 	cons := make(chan struct{})
 
-	go func(msgs <-chan amqp.Delivery) {
+	go func(msgs <-chan amqp.Delivery, s3w *s3.Client) {
 		for d := range msgs {
 
-			m := chapter.Chapter{}
-			json.Unmarshal([]byte(string(d.Body)), &m)
-			fmt.Println(m)
+			m := img.Image{}
+			err := json.Unmarshal([]byte(string(d.Body)), &m)
+			if err != nil {
+				utils.FailOnCmpError("downloader", "convert-rb-mess-to struct", err)
+			}
+			c := fmt.Sprintf("%v, %v, %v", m.Title, m.Chapter, m.Url)
+			fmt.Println(c)
+			i := m.DownloadFile()
+			s3wd.UploadFile(s3w, "storage", fmt.Sprintf("%v/%v/%v", m.Title, m.Chapter, m.Filename), i)
 
 		}
-	}(msgs)
+	}(msgs, s3w)
 
 	<-cons
 }
