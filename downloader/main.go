@@ -31,7 +31,7 @@ func Initialize() error {
 	time.Sleep(time.Second * 10)
 	sqlxDB = db.OpenSQLx()
 
-	rbConn := rabbitmq.CreateRabbitMQClient()
+	rbConn := rabbitmq.CreateClient()
 	client := storage.CreateNewClient()
 
 	downloader := downloader.NewDownloader(sqlxDB, rbConn, client)

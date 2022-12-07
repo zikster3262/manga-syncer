@@ -28,10 +28,10 @@ var (
 type Downloader struct {
 	s3w *s3.Client
 	db  *sqlx.DB
-	rmq *rabbitmq.RabbitMQClient
+	rmq *rabbitmq.Client
 }
 
-func NewDownloader(db *sqlx.DB, rmq *rabbitmq.RabbitMQClient, c *s3.Client) Downloader {
+func NewDownloader(db *sqlx.DB, rmq *rabbitmq.Client, c *s3.Client) Downloader {
 	return Downloader{
 		s3w: c,
 		db:  db,
@@ -85,9 +85,9 @@ func parseMsg(s3w *s3.Client, msgs <-chan amqp.Delivery) {
 			if err != nil {
 				utils.FailOnCmpError("downloader", "convert-rb-mess-to struct", err)
 			}
-			c := fmt.Sprintf("%v, %v, %v", m.Title, m.Chapter, m.Url)
+			c := fmt.Sprintf("%v, %v, %v", m.Title, m.Chapter, m.URL)
 			fmt.Println(c)
-			i := m.DownloadFile()
+			i, _ := m.DownloadFile()
 			s3wd.UploadFile(s3w, "storage", fmt.Sprintf("%v/%v/%v", m.Title, m.Chapter, m.Filename), i)
 
 		}

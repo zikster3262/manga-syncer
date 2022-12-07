@@ -17,7 +17,7 @@ require (
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/rabbitmq/amqp091-go v1.5.0
-	github.com/zikster3262/shared-lib v1.0.65
+	github.com/zikster3262/shared-lib v1.0.66
 )
 
 require (
