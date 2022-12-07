@@ -36,9 +36,9 @@ func createMangaPage(c *gin.Context) {
 	}
 
 	// call GetManga func and return SQLManga Struct
-	res := source.GetSourcePage(db, m.Manga_URL)
+	res := source.GetSourcePage(db, m.MangaURL)
 
-	if res.Manga_URL == m.Manga_URL {
+	if res.MangaURL == m.MangaURL {
 
 		c.JSON(http.StatusFound, gin.H{"Status": "record exists in the database"})
 

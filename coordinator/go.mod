@@ -2,8 +2,6 @@ module goquery-coordinator
 
 go 1.19
 
-replace github.com/zikster3262/shared-lib v1.0.9 => github.com/zikster3262/shared-lib v1.0.1
-
 require (
 	github.com/PuerkitoBio/goquery v1.8.0 // indirect
 	github.com/gin-gonic/gin v1.8.1
@@ -19,7 +17,7 @@ require (
 	github.com/google/go-cmp v0.5.8 // indirect
 	github.com/mattn/go-colorable v0.1.12 // indirect
 	github.com/rabbitmq/amqp091-go v1.5.0
-	github.com/zikster3262/shared-lib v1.0.56
+	github.com/zikster3262/shared-lib v1.0.65
 )
 
 require (
@@ -38,9 +36,9 @@ require (
 	github.com/rs/zerolog v1.28.0
 	github.com/ugorji/go/codec v1.2.7 // indirect
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519 // indirect
-	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f // indirect
-	golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/net v0.2.0 // indirect
+	golang.org/x/sys v0.3.0 // indirect
+	golang.org/x/text v0.4.0 // indirect
 	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 )

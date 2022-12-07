@@ -33,7 +33,7 @@ func Initialize() error {
 
 	sqlxDB = db.OpenSQLx()
 
-	rbConn := rabbitmq.CreateRabbitMQClient()
+	rbConn := rabbitmq.CreateClient()
 	router, err := NewServer(ctx)
 	if err != nil {
 		utils.LogWithInfo("server", "internal error")

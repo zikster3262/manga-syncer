@@ -29,7 +29,7 @@ func Initialize() error {
 	defer cancel()
 
 	sqlxDB = db.OpenSQLx()
-	rbConn := rabbitmq.CreateRabbitMQClient()
+	rbConn := rabbitmq.CreateClient()
 	client := storage.CreateNewClient()
 
 	consumer := consumer.NewConsumer(sqlxDB, rbConn, client)

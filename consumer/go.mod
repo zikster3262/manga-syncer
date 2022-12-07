@@ -6,7 +6,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.29.4
 	github.com/jmoiron/sqlx v1.3.5
 	github.com/rabbitmq/amqp091-go v1.5.0
-	github.com/zikster3262/shared-lib v1.0.64
+	github.com/zikster3262/shared-lib v1.0.65
 	golang.org/x/sync v0.1.0
 	gopkg.in/tylerb/graceful.v1 v1.2.15
 )
@@ -30,9 +30,8 @@ require (
 
 require (
 	github.com/andybalholm/cascadia v1.3.1 // indirect
-	github.com/mattn/go-isatty v0.0.14 // indirect
+	github.com/mattn/go-isatty v0.0.16 // indirect
 	github.com/rs/zerolog v1.28.0
-	golang.org/x/net v0.0.0-20211015210444-4f30a5c0130f // indirect
-	golang.org/x/sys v0.0.0-20220811171246-fbc7d0a398ab // indirect
-	golang.org/x/text v0.3.7 // indirect
+	golang.org/x/net v0.2.0 // indirect
+	golang.org/x/sys v0.3.0 // indirect
 )

@@ -24,10 +24,10 @@ var (
 
 type MangaCoordinator struct {
 	db  *sqlx.DB
-	rmq *rabbitmq.RabbitMQClient
+	rmq *rabbitmq.Client
 }
 
-func NewMangaCoordinator(db *sqlx.DB, rmq *rabbitmq.RabbitMQClient) MangaCoordinator {
+func NewMangaCoordinator(db *sqlx.DB, rmq *rabbitmq.Client) MangaCoordinator {
 	return MangaCoordinator{
 		db:  db,
 		rmq: rmq,
