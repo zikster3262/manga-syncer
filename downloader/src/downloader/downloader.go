@@ -85,8 +85,8 @@ func parseMsg(s3w *s3.Client, msgs <-chan amqp.Delivery) {
 			if err != nil {
 				utils.FailOnCmpError("downloader", "convert-rb-mess-to struct", err)
 			}
-			c := fmt.Sprintf("%v, %v, %v", m.Title, m.Chapter, m.URL)
-			fmt.Println(c)
+			// c := fmt.Sprintf("%v, %v, %v", m.Title, m.Chapter, m.URL)
+			// fmt.Println(c)
 			i, _ := m.DownloadFile()
 			s3wd.UploadFile(s3w, "storage", fmt.Sprintf("%v/%v/%v", m.Title, m.Chapter, m.Filename), i)
 

@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"time"
 
 	"github.com/zikster3262/shared-lib/utils"
@@ -117,8 +116,8 @@ func (s *Consumer) Consume(ctx context.Context) error {
 						imgs := scrape.ScapeChapter(ch)
 
 						for _, i := range imgs {
-							c := fmt.Sprintf("%v, %v, %v", i.Chapter, i.Filename, i.URL)
-							fmt.Println(c)
+							// c := fmt.Sprintf("%v, %v, %v", i.Chapter, i.Filename, i.URL)
+							// fmt.Println(c)
 							err = rabbitmq.PublishMessage(pub, "images", utils.StructToJson(i))
 							if err != nil {
 								utils.FailOnCmpError("rabbitmq", "publish-consume", err)
